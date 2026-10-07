@@ -1,10 +1,10 @@
 generator client {
   provider = "prisma-client"
-  output   = "../generated/prisma"
+  output   = "../src/lib/generated"
 }
 
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
 }
 
 model User {
@@ -45,6 +45,8 @@ model RecipeComponent {
   recipe Recipe             @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   items  VerificationItem[]
 
+  @@unique([recipeId, componentName], name: "recipeId_componentName")
+
   @@map("recipe_components")
 }
 
@@ -80,6 +82,8 @@ model VerificationItem {
   order     CuttingOrder    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   component RecipeComponent @relation(fields: [componentId], references: [id], onDelete: Cascade)
 
+  @@unique([orderId, componentId], name: "orderId_componentId")
+
   @@map("verification_items")
 }
 
@@ -90,6 +94,7 @@ model VerificationLog {
   decision      String   // APPROVED, REJECTED
   rejectionNote String?  @map("rejection_note")
   wastagePct    Float    @map("wastage_pct")
+  componentVariance String? @map("component_variance_json")
   timestamp     DateTime @default(now())
 
   order    CuttingOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
