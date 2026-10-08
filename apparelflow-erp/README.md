@@ -17,9 +17,9 @@ The supplied `.env.example` uses `file:./dev.db` with Prisma's libSQL adapter. S
 
 ## Deploy to Vercel
 
-Vercel Postgres is no longer available for new projects. The deployed project uses a managed Prisma Postgres database. Local development continues to use SQLite; Vercel selects the PostgreSQL Prisma schema and its separate migration history.
+Vercel Postgres is no longer available for new projects. Use a Postgres provider from the Vercel Marketplace, such as Neon. Local development continues to use SQLite; Vercel selects the PostgreSQL Prisma schema and its separate migration history.
 
-The live Vercel deployment is [apparelflow-erp-sigma.vercel.app](https://apparelflow-erp-sigma.vercel.app). The app was deployed from the connected Vercel project; its project root is `apparelflow-erp`. For setup, environment variables, and migration guidance, see [Vercel deployment setup](./DEPLOY_VERCEL.md).
+For exact Neon/Vercel setup, connection variable mapping, and first migration/seed steps, see [Vercel deployment setup](./DEPLOY_VERCEL.md).
 
 ## Demo personas
 
@@ -27,11 +27,11 @@ The sidebar role switcher demonstrates all three personas. It requests a signed,
 
 | Role | Demo identity | Permission summary |
 |---|---|---|
-| Cutting Supervisor | **Maleesha Rukshan** (`alex@demo.apparelflow.test`) | Create cutting orders; inspect own orders; cannot verify or access sewing queue. |
-| Cutting Verifier | **Maya Bandara** (`maya@demo.apparelflow.test`) | Count, approve, or reject pending batches; cannot create orders or access sewing queue. |
-| Sewing Supervisor | **Sugath Lokuge** (`jordan@demo.apparelflow.test`) | View verified queue and start assembly; cannot access unverified batches. |
+| Cutting Supervisor | `alex@demo.apparelflow.test` | Create cutting orders; inspect own orders; cannot verify or access sewing queue. |
+| Cutting Verifier | `maya@demo.apparelflow.test` | Count, approve, or reject pending batches; cannot create orders or access sewing queue. |
+| Sewing Supervisor | `jordan@demo.apparelflow.test` | View verified queue and start assembly; cannot access unverified batches. |
 
-The demo endpoint is intentionally a role selector for evaluation, not a production identity provider. It can issue a signed session for any demo role without proving a person's identity. Do not use this configuration for sensitive or public production workloads; replace it with credential-backed authentication and authorization before treating the app as production-secure. The UI falls back to browser local storage for visual/offline exploration if no database session is configured. That fallback is not authoritative or shared between users; server API paths enforce database workflows.
+The demo endpoint is intentionally a role selector for local evaluation, not a production identity provider. Replace it with a real credential-backed sign-in flow before a public deployment. The UI falls back to browser local storage for visual/offline exploration if no database session is configured. That fallback is not authoritative or shared between users; the server API paths enforce the database workflow.
 
 ## Project structure
 
@@ -100,10 +100,10 @@ Verification logs store a component-by-component JSON snapshot of expected, actu
 
 ## Tests
 
-Run the test suite with `npm test`. It covers domain calculations, count validation, transitions, API role boundaries, and the approval hard stop. The route tests mock database access, so they do not replace end-to-end tests against a separately provisioned test database.
+Run the pure domain suite with `npm test`. It covers multiplication, exact-match approval eligibility, shortages, missing/invalid counts, defensive order validation, allowed state transitions, surplus counts, and fabric overage. Endpoint RBAC and database isolation are encoded in handlers; add integration coverage against a configured database before production deployment.
 
-## Current deployment and production caveats
+## Remaining deployment setup
 
-The Vercel deployment and managed PostgreSQL database are configured. Production builds use `prisma/schema.postgresql.prisma` and the PostgreSQL migration history; local development uses SQLite. Keep production secrets in Vercel's environment settings and in ignored local env files only. Verify environment variables and deployment logs in the Vercel dashboard rather than copying credentials into source control.
+The repository has no cloud credentials or hosted database configured. To publish the required live URL, provision managed SQL and hosting, set `DATABASE_URL` and `AUTH_SECRET`, configure the compatible provider and adapter, then run migrations and seed. Production login must be wired to an identity provider and demo role switching disabled. These external accounts and credentials are not present in this workspace.
 
-The hosted demo is an evaluation deployment, not an invitation to use real personal or production manufacturing data. Demo role switching is deliberately enabled for marking and is not identity verification. Restrict access or replace the demo flow with real authentication before public or business use.
+This workspace has a working local SQLite database and the application has been checked with the included build, lint, domain tests, and API workflow. A live deployment still requires a hosting account, production database, and production identity provider.
