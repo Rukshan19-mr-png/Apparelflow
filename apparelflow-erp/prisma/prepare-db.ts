@@ -1,13 +1,26 @@
 import 'dotenv/config';
-import { createClient } from '@libsql/client';
 
-const client = createClient({ url: process.env.DATABASE_URL || 'file:./dev.db' });
+const databaseUrl = process.env.DATABASE_URL || 'file:./dev.db';
 
 async function main() {
+  if (databaseUrl.startsWith('file:')) {
+    const { createClient } = await import('@libsql/client');
+    const client = createClient({ url: databaseUrl });
+    try {
+      await client.execute('SELECT 1');
+    } finally {
+      client.close();
+    }
+    return;
+  }
+
+  const { Client } = await import('pg');
+  const client = new Client({ connectionString: databaseUrl });
   try {
-    await client.execute('SELECT 1');
+    await client.connect();
+    await client.query('SELECT 1');
   } finally {
-    client.close();
+    await client.end();
   }
 }
 
