@@ -1,6 +1,6 @@
-# Deploy ApparelFlow ERP to Vercel with Prisma Postgres
+# Deploy ApparelFlow ERP to Vercel with Neon Postgres
 
-The live deployment is [apparelflow-erp-sigma.vercel.app](https://apparelflow-erp-sigma.vercel.app), connected to the `apparelflow-erp` Vercel project. Production uses a managed Prisma Postgres database; local development uses SQLite. Vercel builds select `prisma/schema.postgresql.prisma` and `prisma/migrations-postgresql`.
+Vercel Postgres is no longer offered for new projects. The current Vercel Marketplace Postgres option is Neon. This app uses SQLite for local development and a distinct PostgreSQL schema/migration history in production.
 
 ## 1. Push the project to GitHub
 
@@ -11,26 +11,35 @@ Commit and push the project changes. The application root is the `apparelflow-er
 1. In Vercel, choose **Add New → Project**, then import the GitHub repository.
 2. Set **Root Directory** to `apparelflow-erp` and confirm Next.js is detected.
 3. Keep the default install/build settings. The `postinstall` script generates the Prisma client during install.
-4. Do not deploy until the managed PostgreSQL resource and environment variables are configured.
+4. Do not deploy until the Neon database and environment variables are configured.
 
-## 3. Provision PostgreSQL from Vercel
+## 3. Provision Neon from Vercel
 
-For a new project, use the Prisma Postgres integration from Vercel Marketplace (or another supported managed PostgreSQL provider). Connect it to the ApparelFlow Vercel project and choose a region close to the deployment.
+1. In the Vercel dashboard, open **Integrations → Browse Marketplace**.
+2. Find and install **Neon Postgres** (the Vercel-Managed integration is suitable for a new Neon account and bills through Vercel).
+3. Create a database and connect it to the ApparelFlow Vercel project.
+4. Choose a region close to the Vercel project's primary region.
 
-The production project has `DATABASE_URL`, `PRISMA_DATABASE_URL`, and `POSTGRES_URL` provider variables. Keep secrets in Vercel environment settings and ignored local files only.
+The integration adds `DATABASE_URL` to the project. Keep this value for the app's runtime connection. The serverless/pooled connection is appropriate for normal application queries.
 
-## 4. Configure the migration connection and application secret
+## 4. Add the direct connection for Prisma migrations
 
-Use the provider's direct connection string for Prisma migrations when the provider offers one. Confirm that `DIRECT_URL` is direct and non-pooled; do not assume the pooled runtime URL is suitable for migrations.
+Prisma migrations should use a direct (non-pooled) Neon connection.
 
-In Vercel, open **Project → Settings → Environment Variables** and configure:
+1. In Neon, open the database's **Connect** dialog and select the production branch, database, and role.
+2. Copy the direct connection string (disable the pooler if the dialog offers that option).
+3. In Vercel, open **Project → Settings → Environment Variables** and add:
+   - **Key:** `DIRECT_URL`
+   - **Value:** the direct Neon connection string
+   - **Environment:** Production
+4. Add the same variable to Preview only if Preview deployments use a separate preview database/branch. Do not point Preview migrations at the production database.
 
-| Key | Purpose | Environment |
+Also add:
+
+| Key | Value | Environment |
 |---|---|---|
-| `DATABASE_URL` | Runtime PostgreSQL connection | Production |
-| `DIRECT_URL` | Direct connection for migrations, if provided by the provider | Production |
-| `AUTH_SECRET` | Unique random secret, at least 32 random bytes | Production (use a separate secret for Preview) |
-| `NEXT_PUBLIC_APP_URL` | Canonical public URL, if used by the application | Production |
+| `AUTH_SECRET` | A unique random secret, at least 32 random bytes | Production (and a separate secret for Preview) |
+| `NEXT_PUBLIC_APP_URL` | `https://<your-production-domain>` | Production |
 
 Generate a secret locally in PowerShell with:
 
@@ -38,17 +47,16 @@ Generate a secret locally in PowerShell with:
 node -e "console.log(require('node:crypto').randomBytes(32).toString('base64url'))"
 ```
 
-Paste the result into Vercel as a Secret. Never commit actual database URLs or secrets. The active URL is `https://apparelflow-erp-sigma.vercel.app`; update `NEXT_PUBLIC_APP_URL` only if the canonical domain changes and the application uses it.
+Paste the result into Vercel as a Secret. Do not commit actual database URLs or secrets.
 
 ## 5. Create the database schema and seed demo records
 
-Use Vercel CLI from the linked repository root and pull Production variables to a local-only file:
+After the Vercel project is connected to Neon, use Vercel CLI from the `apparelflow-erp` directory. Pull the production variables to a local-only file:
 
 ```powershell
 npx vercel login
 npx vercel link
-npx vercel env pull .\apparelflow-erp\.env.production.local --environment=production
-Set-Location .\apparelflow-erp
+npx vercel env pull .env.production.local --environment=production
 ```
 
 Confirm that `.env.production.local` contains `DATABASE_URL`, `DIRECT_URL`, and `AUTH_SECRET`. Then, in the same PowerShell window:
@@ -66,8 +74,8 @@ These commands use the dedicated PostgreSQL schema and migration directory. Keep
 
 ## 6. Deploy and verify
 
-Deploy through the connected Vercel project. Verify build logs, then open the production URL and test all three demo roles and the create → verify → sew workflow. Configure a custom domain from **Project → Settings → Domains** if desired.
+Deploy the `main` branch from Vercel. Verify the deployment's build logs, then open the provided `*.vercel.app` URL and test login plus each demo role. Configure a custom domain from **Project → Settings → Domains** if desired, and update `NEXT_PUBLIC_APP_URL` to match it before redeploying.
 
 ## Preview database safety
 
-Do not use production database variables for Preview deployments. Connect a separate database/branch to Preview and set its own `DATABASE_URL` and `DIRECT_URL` values, or leave database-backed actions disabled for Preview. This prevents a preview deployment or migration from modifying production data.
+Do not use production database variables for Preview deployments. Connect a separate Neon branch/database to Preview and set its own `DATABASE_URL` and `DIRECT_URL` values, or leave database-backed actions disabled for Preview. This prevents a preview build or migration from modifying production data.
