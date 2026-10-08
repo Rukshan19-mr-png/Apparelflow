@@ -2,9 +2,9 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createSession, sessionCookie, type AuthUser } from '@/lib/auth';
 
 const demos: Record<string, AuthUser> = {
-  cutting_supervisor: { id: 'demo-cutting-supervisor', email: 'alex@demo.apparelflow.test', fullName: 'Alex Morgan', role: 'cutting_supervisor' },
-  cutting_verifier: { id: 'demo-cutting-verifier', email: 'maya@demo.apparelflow.test', fullName: 'Maya Chen', role: 'cutting_verifier' },
-  sewing_supervisor: { id: 'demo-sewing-supervisor', email: 'jordan@demo.apparelflow.test', fullName: 'Jordan Lee', role: 'sewing_supervisor' },
+  cutting_supervisor: { id: 'demo-cutting-supervisor', email: 'alex@demo.apparelflow.test', fullName: 'Maleesha Rukshan', role: 'cutting_supervisor' },
+  cutting_verifier: { id: 'demo-cutting-verifier', email: 'maya@demo.apparelflow.test', fullName: 'Maya Bandara', role: 'cutting_verifier' },
+  sewing_supervisor: { id: 'demo-sewing-supervisor', email: 'jordan@demo.apparelflow.test', fullName: 'Sugath Lokuge', role: 'sewing_supervisor' },
 };
 
 export async function POST(request: NextRequest) {
