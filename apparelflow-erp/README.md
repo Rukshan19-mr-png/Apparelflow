@@ -15,6 +15,12 @@ npm run dev
 
 The supplied `.env.example` uses `file:./dev.db` with Prisma's libSQL adapter. Set `AUTH_SECRET` to a long, random value before use. Production hosting needs a persistent database volume or managed SQL database; an ephemeral serverless file system will not preserve SQLite data. For a multi-instance deployment, configure a managed PostgreSQL database and the matching Prisma provider/adapter instead of SQLite.
 
+## Deploy to Vercel
+
+Vercel Postgres is no longer available for new projects. Use a Postgres provider from the Vercel Marketplace, such as Neon. Local development continues to use SQLite; Vercel selects the PostgreSQL Prisma schema and its separate migration history.
+
+For exact Neon/Vercel setup, connection variable mapping, and first migration/seed steps, see [Vercel deployment setup](./DEPLOY_VERCEL.md).
+
 ## Demo personas
 
 The sidebar role switcher demonstrates all three personas. It requests a signed, HTTP-only demo session from `POST /api/auth/demo` when the API is available. Demo accounts are seeded with these identities:
