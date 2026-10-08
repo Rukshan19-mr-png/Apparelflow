@@ -1,7 +1,14 @@
-import { PrismaClient } from '../src/lib/generated/prisma/client';
+import 'dotenv/config';
+import { PrismaClient } from '../src/lib/generated/client';
 import { PrismaLibSql } from '@prisma/adapter-libsql';
+import { PrismaPg } from '@prisma/adapter-pg';
 
-const prisma = new PrismaClient({ adapter: new PrismaLibSql({ url: process.env.DATABASE_URL || 'file:./dev.db' }) });
+const databaseUrl = process.env.DATABASE_URL || 'file:./dev.db';
+const adapter = databaseUrl.startsWith('file:')
+  ? new PrismaLibSql({ url: databaseUrl })
+  : new PrismaPg({ connectionString: databaseUrl });
+
+const prisma = new PrismaClient({ adapter });
 
 async function main() {
   const recipes = [
