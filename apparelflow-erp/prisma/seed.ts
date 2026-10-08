@@ -23,9 +23,9 @@ async function main() {
     }
   }
   for (const [id, email, fullName, role] of [
-    ['demo-cutting-supervisor','alex@demo.apparelflow.test','Alex Morgan','cutting_supervisor'],
-    ['demo-cutting-verifier','maya@demo.apparelflow.test','Maya Chen','cutting_verifier'],
-    ['demo-sewing-supervisor','jordan@demo.apparelflow.test','Jordan Lee','sewing_supervisor'],
+    ['demo-cutting-supervisor','alex@demo.apparelflow.test','Maleesha Rukshan','cutting_supervisor'],
+    ['demo-cutting-verifier','maya@demo.apparelflow.test','Maya Bandara','cutting_verifier'],
+    ['demo-sewing-supervisor','jordan@demo.apparelflow.test','Sugath Lokuge','sewing_supervisor'],
   ]) {
     await prisma.user.upsert({ where: { email }, update: { fullName, role }, create: { id, email, fullName, role, passwordHash: 'demo-session-only' } });
   }
